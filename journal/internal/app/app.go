@@ -1,9 +1,10 @@
 package app
 
 import (
-	"journal/internal/config"
 	"github.com/labstack/echo/v4"
+	"journal/internal/config"
 
+	"journal/internal/articles"
 	"journal/internal/auth"
 )
 
@@ -16,9 +17,17 @@ func RegisterAuthApp(e *echo.Echo, config *config.Config) {
 	e.POST("/logout", authHandler.LogoutView)
 }
 
-// func RegisterArticleApp(e *echo.Echo, config *config.Config) {}
+func RegisterArticleApp(e *echo.Echo, config *config.Config) {
+	articleRepo := articles.NewRepo()
+	articleService := articles.NewService(articleRepo)
+	articleHandler := articles.NewArticleHandler(articleService)
+	articles := e.Group("/article", auth.AuthMiddleware(config.JWTSecret))
+	articles.GET("/get", articleHandler.GetView)
+	articles.POST("/create", articleHandler.CreateView)
+	articles.PATCH("/edit", articleHandler.EditView)
+}
 
 func New(e *echo.Echo, config *config.Config) {
 	RegisterAuthApp(e, config)
-	// Article app
+	RegisterArticleApp(e, config)
 }

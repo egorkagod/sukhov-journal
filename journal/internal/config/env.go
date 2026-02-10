@@ -6,8 +6,8 @@ import (
 )
 
 type Config struct {
-	TTSPath  string
-	VoiceURL string
+	TTSPath   string
+	VoiceURL  string
 	JWTSecret []byte
 }
 

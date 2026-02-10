@@ -9,7 +9,7 @@ import (
 
 type AuthHandler struct {
 	JWTSecret []byte
-	svc UserService
+	svc       UserService
 }
 
 func NewAuthHandler(JWTSecret []byte, svc UserService) *AuthHandler {
@@ -46,10 +46,10 @@ func (h *AuthHandler) LoginView(c echo.Context) error {
 	}
 
 	c.SetCookie(&http.Cookie{
-		Name: "access_token",
-		Value: token,
+		Name:     "access_token",
+		Value:    token,
 		HttpOnly: true, // отключить при тесте
-		MaxAge: int(ttl.Seconds()),
+		MaxAge:   int(ttl.Seconds()),
 	})
 
 	return c.JSON(200, map[string]string{"message": "Успешный вход"})
@@ -72,13 +72,13 @@ func (h *AuthHandler) RegisterView(c echo.Context) error {
 		return echo.NewHTTPError(409, UserAlreadyExistsErr.Error())
 	default:
 		return echo.NewHTTPError(500, err.Error())
-	}	
+	}
 }
 
 func (h AuthHandler) LogoutView(c echo.Context) error {
 	c.SetCookie(&http.Cookie{
-		Name: "access_token",
-		Value: "",
+		Name:   "access_token",
+		Value:  "",
 		MaxAge: -1,
 	})
 

@@ -2,13 +2,11 @@ package auth
 
 import "context"
 
-
 type UserCreateRepoDTO struct {
-	Login string
+	Login        string
 	PasswordHash string
-	Role string
+	Role         string
 }
-
 
 type UserRepo interface {
 	GetbyID(ctx context.Context, id int64) (*User, error)
@@ -31,7 +29,6 @@ func (r *userInMemoryRepo) GetbyID(ctx context.Context, id int64) (*User, error)
 	return nil, UserNotFoundErr
 }
 
-
 func (r *userInMemoryRepo) GetByLogin(ctx context.Context, login string) (*User, error) {
 	for _, user := range r.data {
 		if user.Login == login {
@@ -42,7 +39,7 @@ func (r *userInMemoryRepo) GetByLogin(ctx context.Context, login string) (*User,
 }
 
 func (r *userInMemoryRepo) Create(ctx context.Context, data UserCreateRepoDTO) error {
-	user, err := r.GetByLogin(ctx, data.Login)
+	user, err := r.GetByLogin(ctx, data.Login) // делаем проверку из-за InMemory репозитория
 	switch {
 	case err == UserNotFoundErr:
 	case user != nil:

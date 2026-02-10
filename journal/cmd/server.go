@@ -1,10 +1,10 @@
 package main
 
 import (
-	"log"
-	"journal/internal/config"
-	"journal/internal/app"
 	"github.com/labstack/echo/v4"
+	"journal/internal/app"
+	"journal/internal/config"
+	"log"
 )
 
 func main() {
