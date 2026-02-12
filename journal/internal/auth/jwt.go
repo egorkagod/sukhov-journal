@@ -2,18 +2,19 @@ package auth
 
 import (
 	"errors"
-	"github.com/golang-jwt/jwt/v5"
 	"strings"
 	"time"
+
+	"github.com/golang-jwt/jwt/v5"
 )
 
 type Claims struct {
-	UserID int64  `json:"uid"`
+	UserID uint64 `json:"uid"`
 	Role   string `json:"role"`
 	jwt.RegisteredClaims
 }
 
-func GenerateJWT(secret []byte, userID int64, role string, ttl time.Duration) (string, error) {
+func GenerateJWT(secret []byte, userID uint64, role string, ttl time.Duration) (string, error) {
 	now := time.Now()
 	claims := Claims{
 		UserID: userID,

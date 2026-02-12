@@ -1,6 +1,13 @@
 package auth
 
-import "context"
+import (
+	"context"
+	"errors"
+
+	"gorm.io/gorm"
+
+	"journal/internal/db"
+)
 
 type UserCreateRepoDTO struct {
 	Login        string
@@ -9,46 +16,52 @@ type UserCreateRepoDTO struct {
 }
 
 type UserRepo interface {
-	GetbyID(ctx context.Context, id int64) (*User, error)
+	GetbyID(ctx context.Context, id uint64) (*User, error)
 	GetByLogin(ctx context.Context, login string) (*User, error)
 	Create(ctx context.Context, data UserCreateRepoDTO) error
 }
 
-type userInMemoryRepo struct {
-	data []User
+type userRepo struct {
+	db *gorm.DB
 }
 
-func NewRepo() UserRepo {
-	return &userInMemoryRepo{data: make([]User, 0)}
+func NewRepo(db *gorm.DB) (UserRepo, error) {
+	return &userRepo{db: db}, nil
 }
 
-func (r *userInMemoryRepo) GetbyID(ctx context.Context, id int64) (*User, error) {
-	if id >= 0 && id < int64(len(r.data)) {
-		return &r.data[id], nil
-	}
-	return nil, UserNotFoundErr
-}
-
-func (r *userInMemoryRepo) GetByLogin(ctx context.Context, login string) (*User, error) {
-	for _, user := range r.data {
-		if user.Login == login {
-			return &user, nil
-		}
-	}
-	return nil, UserNotFoundErr
-}
-
-func (r *userInMemoryRepo) Create(ctx context.Context, data UserCreateRepoDTO) error {
-	user, err := r.GetByLogin(ctx, data.Login) // делаем проверку из-за InMemory репозитория
+func (r *userRepo) GetbyID(ctx context.Context, id uint64) (*User, error) {
+	var user User
+	query := r.db.WithContext(ctx).First(&user, id)
+	err := query.Error
 	switch {
-	case err == UserNotFoundErr:
-	case user != nil:
-		return UserAlreadyExistsErr
-	default:
-		return err
+	case errors.Is(err, gorm.ErrRecordNotFound):
+		return nil, UserNotFoundErr
+	case err != nil:
+		return nil, err
 	}
 
-	newUser := User{ID: int64(len(r.data)), Login: data.Login, PasswordHash: data.PasswordHash, Role: data.Role}
-	r.data = append(r.data, newUser)
-	return nil
+	return &user, nil
+}
+
+func (r *userRepo) GetByLogin(ctx context.Context, login string) (*User, error) {
+	var user User
+	query := r.db.WithContext(ctx).Where("Login = ?", login).Find(&user)
+	err := query.Error
+	if err != nil {
+		return nil, err
+	}
+	if query.RowsAffected == 0 {
+		return nil, UserNotFoundErr
+	}
+	return &user, nil
+}
+
+func (r *userRepo) Create(ctx context.Context, data UserCreateRepoDTO) error {
+	newUser := &User{Login: data.Login, PasswordHash: data.PasswordHash, Role: data.Role}
+	err := r.db.WithContext(ctx).Create(newUser).Error
+
+	if db.IsUniqueErr(err) {
+		return UserAlreadyExistsErr
+	}
+	return err
 }

@@ -17,7 +17,7 @@ func NewArticleHandler(svc ArticleService) *ArticleHandler {
 }
 
 func (h *ArticleHandler) GetView(c echo.Context) error {
-	articleID, err := strconv.ParseInt(c.QueryParam("id"), 10, 64)
+	articleID, err := strconv.ParseUint(c.QueryParam("id"), 10, 64)
 	if err != nil {
 		return echo.NewHTTPError(400, err.Error())
 	}
@@ -41,7 +41,7 @@ func (h *ArticleHandler) CreateView(c echo.Context) error {
 		return echo.NewHTTPError(400, err.Error())
 	}
 
-	userID, ok := (c.Get("UserID")).(int64)
+	userID, ok := (c.Get("UserID")).(uint64)
 	if !ok {
 		return echo.NewHTTPError(500, "Не удалось идентифицировать пользователя")
 	}
@@ -63,7 +63,7 @@ func (h *ArticleHandler) EditView(c echo.Context) error {
 		return echo.NewHTTPError(400, err.Error())
 	}
 
-	userID, ok := (c.Get("UserID")).(int64)
+	userID, ok := (c.Get("UserID")).(uint64)
 	if !ok {
 		return echo.NewHTTPError(500, "Не удалось идентифицировать пользователя")
 	}
@@ -84,7 +84,7 @@ func (h *ArticleHandler) EditView(c echo.Context) error {
 // 		return echo.NewHTTPError(400, err.Error())
 // 	}
 
-// 	userID, ok := (c.Get("UserID")).(int64)
+// 	userID, ok := (c.Get("UserID")).(uint64)
 // 	if !ok {
 // 		return echo.NewHTTPError(500, "Не удалось идентифицировать пользователя")
 // 	}

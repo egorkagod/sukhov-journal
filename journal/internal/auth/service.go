@@ -12,6 +12,7 @@ type UserCredentialsServiceDTO struct {
 }
 
 type UserService interface {
+	GetRepo() UserRepo
 	Register(ctx context.Context, data UserCredentialsServiceDTO) error
 	Login(ctx context.Context, data UserCredentialsServiceDTO) (*User, error)
 }
@@ -22,6 +23,10 @@ type userService struct {
 
 func NewService(repo UserRepo) UserService {
 	return &userService{repo: repo}
+}
+
+func (s *userService) GetRepo() UserRepo {
+	return s.repo
 }
 
 func (s *userService) Register(ctx context.Context, data UserCredentialsServiceDTO) error {

@@ -2,11 +2,11 @@ package articles
 
 type ArticleCreateSchema struct {
 	Title string `json:"title"`
-	Body  string `json:"password"`
+	Body  string `json:"body"`
 }
 
 type ArticleEditSchema struct {
-	ArticleID int64  `json:"articleId"`
+	ArticleID uint64 `json:"id"`
 	Title     string `json:"title"`
 	Body      string `json:"body"`
 }

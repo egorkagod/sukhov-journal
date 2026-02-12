@@ -1,53 +1,65 @@
 package articles
 
-import "context"
+import (
+	"context"
+	"errors"
+
+	"gorm.io/gorm"
+)
 
 type ArticleCreateRepoDTO struct {
-	AuthorID int64
+	AuthorID uint64
 	Title    string
 	Body     string
 }
 
 type ArticleEditRepoDTO struct {
-	ID    int64
+	ID    uint64
 	Title string
 	Body  string
 }
 
 type ArticleRepo interface {
-	GetByID(ctx context.Context, id int64) (*Article, error)
+	GetByID(ctx context.Context, id uint64) (*Article, error)
 	Create(ctx context.Context, data ArticleCreateRepoDTO) error
 	Edit(ctx context.Context, data ArticleEditRepoDTO) error
 }
 
-type articleInMemoryRepo struct {
-	data []Article
+type articleRepo struct {
+	db *gorm.DB
 }
 
-func NewRepo() ArticleRepo {
-	return &articleInMemoryRepo{data: make([]Article, 0)}
+func NewRepo(db *gorm.DB) ArticleRepo {
+	return &articleRepo{db: db}
 }
 
-func (r *articleInMemoryRepo) GetByID(ctx context.Context, id int64) (*Article, error) {
-	if id >= 0 && id < int64(len(r.data)) {
-		return &r.data[id], nil
+func (r *articleRepo) GetByID(ctx context.Context, id uint64) (*Article, error) {
+	var article Article
+	query := r.db.WithContext(ctx).First(&article, id)
+	err := query.Error
+	switch {
+	case errors.Is(err, gorm.ErrRecordNotFound):
+		return nil, ArticleNotFoundErr
+	case err != nil:
+		return nil, err
 	}
-	return nil, ArticleNotFoundErr
+
+	return &article, nil
 }
 
-func (r *articleInMemoryRepo) Create(ctx context.Context, data ArticleCreateRepoDTO) error {
-	newArticle := Article{ID: int64(len(r.data)), AuthorID: data.AuthorID, Title: data.Title, Body: data.Body}
-	r.data = append(r.data, newArticle)
-	return nil
+func (r *articleRepo) Create(ctx context.Context, data ArticleCreateRepoDTO) error {
+	newArticle := &Article{AuthorID: data.AuthorID, Title: data.Title, Body: data.Body}
+	return r.db.WithContext(ctx).Create(newArticle).Error
 }
 
-func (r *articleInMemoryRepo) Edit(ctx context.Context, data ArticleEditRepoDTO) error {
-	previousArticle, err := r.GetByID(ctx, data.ID)
+func (r *articleRepo) Edit(ctx context.Context, data ArticleEditRepoDTO) error {
+	article, err := r.GetByID(ctx, data.ID)
 	if err != nil {
 		return err
 	}
 
-	newArticle := Article{ID: data.ID, AuthorID: previousArticle.AuthorID, Title: data.Title, Body: data.Body}
-	r.data[data.ID] = newArticle
-	return nil
+	article.Title = data.Title
+	article.Body = data.Body
+	tx := r.db.Save(article)
+	return tx.Error
 }

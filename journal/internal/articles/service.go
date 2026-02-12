@@ -3,21 +3,21 @@ package articles
 import "context"
 
 type ArticleCreateServiceDTO struct {
-	AuthorID int64
+	AuthorID uint64
 	Title    string
 	Body     string
 }
 
 type ArticleEditServiceDTO struct {
-	ID     int64
-	UserID int64
+	ID     uint64
+	UserID uint64
 	Title  string
 	Body   string
 }
 
 type ArticleDeleteServiceDTO struct {
-	ID     int64
-	UserID int64
+	ID     uint64
+	UserID uint64
 }
 
 type ArticleService interface {

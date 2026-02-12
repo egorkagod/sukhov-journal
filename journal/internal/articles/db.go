@@ -1,10 +1,15 @@
 package articles
 
-import "time"
+import (
+	"time"
+
+	"journal/internal/auth"
+)
 
 type Article struct {
-	ID        int64
-	AuthorID  int64
+	ID        uint64 `gorm:"primaryKey"`
+	AuthorID  uint64
+	User      auth.User `gorm:"foreignKey:AuthorID"`
 	Title     string
 	Body      string
 	CreatedAt time.Time

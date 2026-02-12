@@ -16,6 +16,21 @@ func NewAuthHandler(JWTSecret []byte, svc UserService) *AuthHandler {
 	return &AuthHandler{JWTSecret: JWTSecret, svc: svc}
 }
 
+func (h *AuthHandler) GetView(c echo.Context) error {
+	login := c.QueryParam("login")
+
+	ctx := c.Request().Context()
+	user, err := h.svc.GetRepo().GetByLogin(ctx, login)
+	switch err {
+	case UserNotFoundErr:
+		return c.JSON(404, map[string]string{"message": "Пользователь не найден"})
+	case nil:
+	default:
+		return echo.NewHTTPError(500, err)
+	}
+	return c.JSON(200, user)
+}
+
 func (h *AuthHandler) LoginView(c echo.Context) error {
 	var data CredentialsSchema
 
