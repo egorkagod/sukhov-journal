@@ -1,8 +1,7 @@
 package articles
 
 import (
-	// "strconv"
-
+	"errors"
 	"strconv"
 
 	"github.com/labstack/echo/v4"
@@ -78,23 +77,29 @@ func (h *ArticleHandler) EditView(c echo.Context) error {
 	return c.JSON(200, map[string]string{"message": "Статья успешно изменена"})
 }
 
-// func (h *ArticleHandler) DeleteView(c echo.Context) error {
-// 	articleID, err := strconv.ParseInt(c.QueryParam("id"), 10, 64)
-// 	if err != nil {
-// 		return echo.NewHTTPError(400, err.Error())
-// 	}
+func (h *ArticleHandler) DeleteView(c echo.Context) error {
+	articleID, err := strconv.ParseUint(c.QueryParam("id"), 10, 64)
+	if err != nil {
+		return echo.NewHTTPError(400, err.Error())
+	}
 
-// 	userID, ok := (c.Get("UserID")).(uint64)
-// 	if !ok {
-// 		return echo.NewHTTPError(500, "Не удалось идентифицировать пользователя")
-// 	}
+	userID, ok := (c.Get("UserID")).(uint64)
+	if !ok {
+		return echo.NewHTTPError(500, "Не удалось идентифицировать пользователя")
+	}
 
-// 	dto := ArticleDeleteServiceDTO{ID: articleID, UserID: userID}
-// 	ctx := c.Request().Context()
-// 	err = h.svc.Delete(ctx, dto)
-// 	if err != nil {
-// 		return echo.NewHTTPError(500, err.Error())
-// 	}
+	dto := ArticleDeleteServiceDTO{ID: articleID, UserID: userID}
+	ctx := c.Request().Context()
+	err = h.svc.Delete(ctx, dto)
 
-// 	return c.JSON(200, map[string]string{"message": "Статья успешно удалена"})
-// }
+	var appError AppError
+	if errors.As(err, &appError) {
+		return echo.NewHTTPError(appError.code, appError.Error())
+	}
+
+	if err != nil {
+		return echo.NewHTTPError(500, err)
+	}
+
+	return c.JSON(200, map[string]string{"message": "Статья успешно удалена"})
+}

@@ -12,6 +12,7 @@ type Article struct {
 	User      auth.User `gorm:"foreignKey:AuthorID"`
 	Title     string
 	Body      string
+	IsDeleted bool
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }

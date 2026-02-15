@@ -24,7 +24,7 @@ type ArticleService interface {
 	GetRepo() ArticleRepo
 	Create(ctx context.Context, data ArticleCreateServiceDTO) error
 	Edit(ctx context.Context, data ArticleEditServiceDTO) error
-	// Delete(ctx context.Context, data ArticleDeleteServiceDTO) error
+	Delete(ctx context.Context, data ArticleDeleteServiceDTO) error
 }
 
 type articleService struct {
@@ -56,14 +56,14 @@ func (s *articleService) Edit(ctx context.Context, data ArticleEditServiceDTO) e
 	return s.repo.Edit(ctx, ArticleEditRepoDTO{ID: data.ID, Title: data.Title, Body: data.Body})
 }
 
-// func (s *articleService) Delete(ctx context.Context, data ArticleDeleteServiceDTO) error {
-// 	article, err := s.repo.GetByID(ctx, data.ID)
-// 	if err != nil {
-// 		return err
-// 	}
+func (s *articleService) Delete(ctx context.Context, data ArticleDeleteServiceDTO) error {
+	article, err := s.repo.GetByID(ctx, data.ID)
+	if err != nil {
+		return err
+	}
 
-// 	if article.AuthorID != data.UserID {
-// 		return NoPermissionsErr
-// 	}
-// 	return s.repo.DeleteByID(ctx, data.ID)
-// }
+	if article.AuthorID != data.UserID {
+		return NoPermissionsErr
+	}
+	return s.repo.DeleteByID(ctx, data.ID)
+}

@@ -9,7 +9,9 @@ import (
 	"github.com/joho/godotenv"
 )
 
-type Config struct { //TODO Дописать валидацию DB значений
+type Config struct {
+	Debug bool
+
 	TTSPath   string
 	VoiceURL  string
 	JWTSecret []byte
@@ -37,6 +39,12 @@ func Load() (*Config, error) {
 	if err != nil {
 		log.Fatal("Не удалось загрузить .env файл в окружение")
 	}
+
+	debug, err := strconv.ParseBool(getEnv("DEBUG", "false"))
+	if err != nil {
+		log.Fatal("Debug должен быть bool")
+	}
+	cnf.Debug = debug
 
 	cnf.TTSPath = getEnv("TTS_PATH", "/voice/tts")
 	cnf.VoiceURL = getEnv("VOICE_URL", "")

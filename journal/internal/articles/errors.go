@@ -1,6 +1,17 @@
 package articles
 
-import "errors"
+type AppError struct {
+	code    int
+	message string
+}
 
-var NoPermissionsErr = errors.New("Недостаточно прав")
-var ArticleNotFoundErr = errors.New("Статья не найдена")
+func (e AppError) Error() string {
+	return e.message
+}
+
+func NewAppError(code int, message string) AppError {
+	return AppError{code: code, message: message}
+}
+
+var NoPermissionsErr = NewAppError(403, "Недостаточно прав")
+var ArticleNotFoundErr = NewAppError(404, "Статья не найдена")

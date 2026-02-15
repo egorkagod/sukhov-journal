@@ -3,6 +3,7 @@ package articles
 import (
 	"context"
 	"errors"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -23,6 +24,7 @@ type ArticleRepo interface {
 	GetByID(ctx context.Context, id uint64) (*Article, error)
 	Create(ctx context.Context, data ArticleCreateRepoDTO) error
 	Edit(ctx context.Context, data ArticleEditRepoDTO) error
+	DeleteByID(ctx context.Context, id uint64) error
 }
 
 type articleRepo struct {
@@ -35,7 +37,7 @@ func NewRepo(db *gorm.DB) ArticleRepo {
 
 func (r *articleRepo) GetByID(ctx context.Context, id uint64) (*Article, error) {
 	var article Article
-	query := r.db.WithContext(ctx).First(&article, id)
+	query := r.db.WithContext(ctx).Where("id = ? AND is_deleted = false", id).First(&article)
 	err := query.Error
 	switch {
 	case errors.Is(err, gorm.ErrRecordNotFound):
@@ -48,7 +50,7 @@ func (r *articleRepo) GetByID(ctx context.Context, id uint64) (*Article, error) 
 }
 
 func (r *articleRepo) Create(ctx context.Context, data ArticleCreateRepoDTO) error {
-	newArticle := &Article{AuthorID: data.AuthorID, Title: data.Title, Body: data.Body}
+	newArticle := &Article{AuthorID: data.AuthorID, Title: data.Title, Body: data.Body, CreatedAt: time.Now(), UpdatedAt: time.Now()}
 	return r.db.WithContext(ctx).Create(newArticle).Error
 }
 
@@ -60,6 +62,18 @@ func (r *articleRepo) Edit(ctx context.Context, data ArticleEditRepoDTO) error {
 
 	article.Title = data.Title
 	article.Body = data.Body
+	article.UpdatedAt = time.Now()
+	tx := r.db.Save(article)
+	return tx.Error
+}
+
+func (r *articleRepo) DeleteByID(ctx context.Context, id uint64) error {
+	article, err := r.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	article.IsDeleted = true
 	tx := r.db.Save(article)
 	return tx.Error
 }
