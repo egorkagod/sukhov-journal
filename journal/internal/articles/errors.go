@@ -13,5 +13,5 @@ func NewAppError(code int, message string) AppError {
 	return AppError{code: code, message: message}
 }
 
-var NoPermissionsErr = NewAppError(403, "Недостаточно прав")
-var ArticleNotFoundErr = NewAppError(404, "Статья не найдена")
+var ErrNoPermision = NewAppError(403, "Недостаточно прав")
+var ErrArticleNotFound = NewAppError(404, "Статья не найдена")

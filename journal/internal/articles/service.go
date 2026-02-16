@@ -50,7 +50,7 @@ func (s *articleService) Edit(ctx context.Context, data ArticleEditServiceDTO) e
 	}
 
 	if article.AuthorID != data.UserID {
-		return NoPermissionsErr
+		return ErrNoPermision
 	}
 
 	return s.repo.Edit(ctx, ArticleEditRepoDTO{ID: data.ID, Title: data.Title, Body: data.Body})
@@ -63,7 +63,7 @@ func (s *articleService) Delete(ctx context.Context, data ArticleDeleteServiceDT
 	}
 
 	if article.AuthorID != data.UserID {
-		return NoPermissionsErr
+		return ErrNoPermision
 	}
 	return s.repo.DeleteByID(ctx, data.ID)
 }

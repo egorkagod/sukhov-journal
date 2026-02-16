@@ -22,7 +22,7 @@ func (h *AuthHandler) GetView(c echo.Context) error {
 	ctx := c.Request().Context()
 	user, err := h.svc.GetRepo().GetByLogin(ctx, login)
 	switch err {
-	case UserNotFoundErr:
+	case ErrUserNotFound:
 		return c.JSON(404, map[string]string{"message": "Пользователь не найден"})
 	case nil:
 	default:
@@ -46,14 +46,14 @@ func (h *AuthHandler) LoginView(c echo.Context) error {
 	dto := UserCredentialsServiceDTO{Login: data.Login, Password: data.Password}
 	user, err := h.svc.Login(ctx, dto)
 	switch err {
-	case UserNotFoundErr:
+	case ErrUserNotFound:
 		return echo.NewHTTPError(401, "Неверный логин или пароль")
 	case nil:
 	default:
 		return echo.NewHTTPError(500, err.Error())
 	}
 
-	ttl := 15 * time.Minute
+	ttl := 20 * time.Minute
 
 	token, err := GenerateJWT(h.JWTSecret, user.ID, user.Role, ttl)
 	if err != nil {
@@ -63,7 +63,7 @@ func (h *AuthHandler) LoginView(c echo.Context) error {
 	c.SetCookie(&http.Cookie{
 		Name:     "access_token",
 		Value:    token,
-		HttpOnly: true, // отключить при тесте
+		HttpOnly: true,
 		MaxAge:   int(ttl.Seconds()),
 	})
 
@@ -83,8 +83,8 @@ func (h *AuthHandler) RegisterView(c echo.Context) error {
 	switch err {
 	case nil:
 		return c.JSON(200, map[string]string{"message": "Успешная регистрация"})
-	case UserAlreadyExistsErr:
-		return echo.NewHTTPError(409, UserAlreadyExistsErr.Error())
+	case ErrUserAlreadyExists:
+		return echo.NewHTTPError(409, ErrUserAlreadyExists.Error())
 	default:
 		return echo.NewHTTPError(500, err.Error())
 	}

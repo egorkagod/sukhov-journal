@@ -45,7 +45,7 @@ func (s *userService) Login(ctx context.Context, data UserCredentialsServiceDTO)
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(data.Password)); err != nil {
-		return nil, CredentialsIsIncorrect
+		return nil, ErrCredentialIsIncorrect
 	}
 	return user, nil
 }

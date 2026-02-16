@@ -35,10 +35,7 @@ func getEnv(key string, byDefault string) string {
 
 func Load() (*Config, error) {
 	cnf := &Config{}
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Не удалось загрузить .env файл в окружение")
-	}
+	_ = godotenv.Load()
 
 	debug, err := strconv.ParseBool(getEnv("DEBUG", "false"))
 	if err != nil {

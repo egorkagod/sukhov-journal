@@ -41,7 +41,7 @@ func (r *articleRepo) GetByID(ctx context.Context, id uint64) (*Article, error) 
 	err := query.Error
 	switch {
 	case errors.Is(err, gorm.ErrRecordNotFound):
-		return nil, ArticleNotFoundErr
+		return nil, ErrArticleNotFound
 	case err != nil:
 		return nil, err
 	}

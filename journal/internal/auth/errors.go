@@ -1,8 +1,18 @@
 package auth
 
-import "errors"
+type AppError struct {
+	code    int
+	message string
+}
 
-var ArticleNotFoundErr = errors.New("Статья не найдена")
-var UserNotFoundErr = errors.New("Пользователь не наден")
-var UserAlreadyExistsErr = errors.New("Пользователь с таким логином уже есть")
-var CredentialsIsIncorrect = errors.New("Неверный логин или пароль")
+func (e AppError) Error() string {
+	return e.message
+}
+
+func NewAppError(code int, message string) AppError {
+	return AppError{code: code, message: message}
+}
+
+var ErrUserNotFound = NewAppError(404, "Пользователь не наден")
+var ErrUserAlreadyExists = NewAppError(409, "Пользователь с таким логином уже есть")
+var ErrCredentialIsIncorrect = NewAppError(401, "Неверный логин или пароль")

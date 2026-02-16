@@ -35,7 +35,7 @@ func (r *userRepo) GetbyID(ctx context.Context, id uint64) (*User, error) {
 	err := query.Error
 	switch {
 	case errors.Is(err, gorm.ErrRecordNotFound):
-		return nil, UserNotFoundErr
+		return nil, ErrUserNotFound
 	case err != nil:
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func (r *userRepo) GetByLogin(ctx context.Context, login string) (*User, error) 
 		return nil, err
 	}
 	if query.RowsAffected == 0 {
-		return nil, UserNotFoundErr
+		return nil, ErrUserNotFound
 	}
 	return &user, nil
 }
@@ -61,7 +61,7 @@ func (r *userRepo) Create(ctx context.Context, data UserCreateRepoDTO) error {
 	err := r.db.WithContext(ctx).Create(newUser).Error
 
 	if db.IsUniqueErr(err) {
-		return UserAlreadyExistsErr
+		return ErrUserAlreadyExists
 	}
 	return err
 }

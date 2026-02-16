@@ -23,14 +23,17 @@ func (h *ArticleHandler) GetView(c echo.Context) error {
 
 	ctx := c.Request().Context()
 	article, err := h.svc.GetRepo().GetByID(ctx, articleID)
-	switch err {
-	case ArticleNotFoundErr:
-		return echo.NewHTTPError(404, ArticleNotFoundErr.Error())
-	case nil:
-		return c.JSON(200, article)
-	default:
+
+	var appError AppError
+	if errors.As(err, &appError) {
+		return echo.NewHTTPError(appError.code, appError.Error())
+	}
+
+	if err != nil {
 		return echo.NewHTTPError(500, err.Error())
 	}
+
+	return c.JSON(200, article)
 }
 
 func (h *ArticleHandler) CreateView(c echo.Context) error {
@@ -48,6 +51,12 @@ func (h *ArticleHandler) CreateView(c echo.Context) error {
 	dto := ArticleCreateServiceDTO{AuthorID: userID, Title: data.Title, Body: data.Body}
 	ctx := c.Request().Context()
 	err := h.svc.Create(ctx, dto)
+
+	var appError AppError
+	if errors.As(err, &appError) {
+		return echo.NewHTTPError(appError.code, appError.Error())
+	}
+
 	if err != nil {
 		return echo.NewHTTPError(500, err.Error())
 	}
@@ -70,6 +79,12 @@ func (h *ArticleHandler) EditView(c echo.Context) error {
 	dto := ArticleEditServiceDTO{ID: data.ArticleID, UserID: userID, Title: data.Title, Body: data.Body}
 	ctx := c.Request().Context()
 	err := h.svc.Edit(ctx, dto)
+
+	var appError AppError
+	if errors.As(err, &appError) {
+		return echo.NewHTTPError(appError.code, appError.Error())
+	}
+
 	if err != nil {
 		return echo.NewHTTPError(500, err.Error())
 	}
@@ -98,7 +113,7 @@ func (h *ArticleHandler) DeleteView(c echo.Context) error {
 	}
 
 	if err != nil {
-		return echo.NewHTTPError(500, err)
+		return echo.NewHTTPError(500, err.Error())
 	}
 
 	return c.JSON(200, map[string]string{"message": "Статья успешно удалена"})
