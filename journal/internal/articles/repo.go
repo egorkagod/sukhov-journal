@@ -20,11 +20,17 @@ type ArticleEditRepoDTO struct {
 	Body  string
 }
 
+type ArticleAddAudioPathDTO struct {
+	ID        uint64
+	AudioPath string
+}
+
 type ArticleRepo interface {
 	GetByID(ctx context.Context, id uint64) (*Article, error)
-	Create(ctx context.Context, data ArticleCreateRepoDTO) error
+	Create(ctx context.Context, data ArticleCreateRepoDTO) (uint64, error)
 	Edit(ctx context.Context, data ArticleEditRepoDTO) error
 	DeleteByID(ctx context.Context, id uint64) error
+	AddAudioPath(ctx context.Context, data ArticleAddAudioPathDTO) error
 }
 
 type articleRepo struct {
@@ -49,9 +55,13 @@ func (r *articleRepo) GetByID(ctx context.Context, id uint64) (*Article, error) 
 	return &article, nil
 }
 
-func (r *articleRepo) Create(ctx context.Context, data ArticleCreateRepoDTO) error {
+func (r *articleRepo) Create(ctx context.Context, data ArticleCreateRepoDTO) (uint64, error) {
 	newArticle := &Article{AuthorID: data.AuthorID, Title: data.Title, Body: data.Body, CreatedAt: time.Now(), UpdatedAt: time.Now()}
-	return r.db.WithContext(ctx).Create(newArticle).Error
+	err := r.db.WithContext(ctx).Create(newArticle).Error
+	if err != nil {
+		return 0, err
+	}
+	return newArticle.ID, nil
 }
 
 func (r *articleRepo) Edit(ctx context.Context, data ArticleEditRepoDTO) error {
@@ -74,6 +84,17 @@ func (r *articleRepo) DeleteByID(ctx context.Context, id uint64) error {
 	}
 
 	article.IsDeleted = true
+	tx := r.db.Save(article)
+	return tx.Error
+}
+
+func (r *articleRepo) AddAudioPath(ctx context.Context, data ArticleAddAudioPathDTO) error {
+	article, err := r.GetByID(ctx, data.ID)
+	if err != nil {
+		return err
+	}
+
+	article.AudioPath = data.AudioPath
 	tx := r.db.Save(article)
 	return tx.Error
 }

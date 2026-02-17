@@ -1,6 +1,11 @@
 package articles
 
-import "context"
+import (
+	"context"
+	"log"
+
+	"journal/internal/voice"
+)
 
 type ArticleCreateServiceDTO struct {
 	AuthorID uint64
@@ -25,6 +30,7 @@ type ArticleService interface {
 	Create(ctx context.Context, data ArticleCreateServiceDTO) error
 	Edit(ctx context.Context, data ArticleEditServiceDTO) error
 	Delete(ctx context.Context, data ArticleDeleteServiceDTO) error
+	GetAudioPath(ctx context.Context, articleID uint64) (string, error)
 }
 
 type articleService struct {
@@ -40,7 +46,12 @@ func (s *articleService) GetRepo() ArticleRepo {
 }
 
 func (s *articleService) Create(ctx context.Context, data ArticleCreateServiceDTO) error {
-	return s.repo.Create(ctx, ArticleCreateRepoDTO{AuthorID: data.AuthorID, Title: data.Title, Body: data.Body})
+	articleID, err := s.repo.Create(ctx, ArticleCreateRepoDTO{AuthorID: data.AuthorID, Title: data.Title, Body: data.Body})
+	if err != nil {
+		return err
+	}
+	go s.VoiceOver(context.Background(), articleID)
+	return nil
 }
 
 func (s *articleService) Edit(ctx context.Context, data ArticleEditServiceDTO) error {
@@ -66,4 +77,39 @@ func (s *articleService) Delete(ctx context.Context, data ArticleDeleteServiceDT
 		return ErrNoPermision
 	}
 	return s.repo.DeleteByID(ctx, data.ID)
+}
+
+func (s *articleService) GetAudioPath(ctx context.Context, articleID uint64) (string, error) {
+	article, err := s.repo.GetByID(ctx, articleID)
+	if err != nil {
+		return "", err
+	}
+
+	return article.AudioPath, nil
+}
+
+func (s *articleService) VoiceOver(ctx context.Context, articleID uint64) {
+	article, err := s.repo.GetByID(ctx, articleID)
+	if err != nil {
+		log.Printf("Ошибка при получении статьи для озвучки - %v", err.Error())
+		return
+	}
+
+	audioData, err := voice.Manager.VoiceOver(article.Body)
+	if err != nil {
+		log.Printf("Ошибка при получении аудио озвучки статьи - %v", err.Error())
+		return
+	}
+
+	path, err := voice.Manager.SaveAudio(audioData, articleID)
+	if err != nil {
+		log.Printf("Ошибка при сохранении аудио озвучки статьи - %v", err.Error())
+		return
+	}
+
+	err = s.repo.AddAudioPath(ctx, ArticleAddAudioPathDTO{ID: articleID, AudioPath: path})
+	if err != nil {
+		log.Printf("Ошибка при сохранении пути к аудио в статье - %v", err.Error())
+		return
+	}
 }

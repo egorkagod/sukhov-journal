@@ -12,8 +12,9 @@ import (
 type Config struct {
 	Debug bool
 
-	TTSPath   string
 	VoiceURL  string
+	AudioPath string
+
 	JWTSecret []byte
 
 	DBHost     string
@@ -43,7 +44,7 @@ func Load() (*Config, error) {
 	}
 	cnf.Debug = debug
 
-	cnf.TTSPath = getEnv("TTS_PATH", "/voice/tts")
+	cnf.AudioPath = getEnv("AUDIO_PATH", "/var/www/sukhov-jornal/audio")
 	cnf.VoiceURL = getEnv("VOICE_URL", "")
 	cnf.JWTSecret = []byte(getEnv("JWT_SECRET", ""))
 

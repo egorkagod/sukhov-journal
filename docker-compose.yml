@@ -4,11 +4,17 @@ services:
     build: ./journal
     env_file:
       - journal/.env
+    environment:
+      - AUDIO_PATH=/var/www/sukhov-jornal/audio
     ports:
       - "8080:8080"
+    volumes:
+      - audio:/var/www/sukhov-journal/audio
     depends_on:
-      # - ai-voice
-      - postgres
+      ai-voice:
+        condition: service_started
+      postgres:
+        condition: service_healthy
 
   postgres:
     image: postgres:15
@@ -18,13 +24,19 @@ services:
       - POSTGRES_PASSWORD=journal
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U journal -d journal"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
     volumes:
       - pgdata:/var/lib/postgresql/data
 
-  # ai-voice:
-  #   build: ./ai-voice
-  #   expose:
-  #     - 8000
+  ai-voice:
+    build: ./ai-voice
+    expose:
+      - 8000
 
 volumes:
   pgdata:
+  audio:

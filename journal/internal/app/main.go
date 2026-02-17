@@ -10,6 +10,7 @@ import (
 	"journal/internal/auth"
 	"journal/internal/config"
 	"journal/internal/db"
+	"journal/internal/voice"
 )
 
 func InitDB(config *config.Config) *gorm.DB {
@@ -50,9 +51,11 @@ func RegisterArticleApp(e *echo.Echo, config *config.Config, db *gorm.DB) {
 	articles.POST("/create", articleHandler.CreateView)
 	articles.PATCH("/edit", articleHandler.EditView)
 	articles.DELETE("/delete", articleHandler.DeleteView)
+	articles.GET("/speech", articleHandler.VoiceOverView)
 }
 
 func New(e *echo.Echo, config *config.Config) {
+	voice.InitManager(config)
 	db := InitDB(config)
 	RegisterAuthApp(e, config, db)
 	RegisterArticleApp(e, config, db)
