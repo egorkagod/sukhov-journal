@@ -2,6 +2,13 @@
 
 Сервис статей, с возможностью их озвучки.
 
+## Запуск проекта
+```bash
+git clone https://github.com/egorkagod/sukhov-journal.git
+cd sukhov-journal
+cp journal/.env.template journal/.env
+docker compose up
+```
 
 ## Tech Stack
 - Go (Echo)
